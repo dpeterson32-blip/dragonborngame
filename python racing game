@@ -1,0 +1,157 @@
+import tkinter as tk
+import random
+import json
+import os
+
+SAVE_FILE = "racing_save.json"
+
+class RacingGame:
+    def __init__(self):
+        self.root = tk.Tk()
+        self.root.title("Python Racing Game")
+        self.root.attributes("-fullscreen", True)
+
+        self.width = self.root.winfo_screenwidth()
+        self.height = self.root.winfo_screenheight()
+
+        self.canvas = tk.Canvas(
+            self.root,
+            bg="#006400",
+            width=self.width,
+            height=self.height
+        )
+        self.canvas.pack()
+
+        self.score = 0
+        self.level = 1
+        self.speed = 10
+
+        self.show_menu()
+
+        self.root.mainloop()
+
+    def clear_screen(self):
+        self.canvas.delete("all")
+
+    def show_menu(self):
+        self.clear_screen()
+
+        self.canvas.create_text(
+            self.width//2,
+            150,
+            text="RACING GAME",
+            font=("Arial", 40, "bold"),
+            fill="white"
+        )
+
+        tk.Button(
+            self.root,
+            text="Start Game",
+            command=self.start_game
+        ).place(x=self.width//2-60, y=250)
+
+        tk.Button(
+            self.root,
+            text="Load Save",
+            command=self.load_game
+        ).place(x=self.width//2-60, y=300)
+
+        tk.Button(
+            self.root,
+            text="Quit",
+            command=self.root.destroy
+        ).place(x=self.width//2-60, y=350)
+
+    def start_game(self):
+        self.clear_screen()
+
+        self.road_left = self.width//2 - 200
+        self.road_right = self.width//2 + 200
+
+        self.player_x = self.width//2
+        self.player_y = self.height - 150
+
+        self.coins = 0
+
+        self.player = self.canvas.create_rectangle(
+            self.player_x-25,
+            self.player_y-50,
+            self.player_x+25,
+            self.player_y+50,
+            fill="blue"
+        )
+
+        self.enemy = self.spawn_enemy()
+
+        self.root.bind("<Left>", self.move_left)
+        self.root.bind("<Right>", self.move_right)
+        self.root.bind("<Escape>", lambda e:self.show_menu())
+        self.root.bind("<s>", lambda e:self.save_game())
+
+        self.game_loop()
+
+    def spawn_enemy(self):
+        lane = random.randint(
+            self.road_left+50,
+            self.road_right-50
+        )
+
+        return self.canvas.create_rectangle(
+            lane-25,
+            -100,
+            lane+25,
+            0,
+            fill="red"
+        )
+
+    def move_left(self, event):
+        self.canvas.move(self.player, -40, 0)
+
+    def move_right(self, event):
+        self.canvas.move(self.player, 40, 0)
+
+    def save_game(self):
+        data = {
+            "level": self.level,
+            "score": self.score,
+            "speed": self.speed
+        }
+
+        with open(SAVE_FILE, "w") as f:
+            json.dump(data, f)
+
+        print("Saved")
+
+    def load_game(self):
+        if os.path.exists(SAVE_FILE):
+
+            with open(SAVE_FILE, "r") as f:
+                data = json.load(f)
+
+            self.level = data["level"]
+            self.score = data["score"]
+            self.speed = data["speed"]
+
+        self.start_game()
+
+    def game_over(self):
+        self.clear_screen()
+
+        self.canvas.create_text(
+            self.width//2,
+            self.height//2,
+            text="GAME OVER",
+            font=("Arial", 50),
+            fill="red"
+        )
+
+        self.canvas.create_text(
+            self.width//2,
+            self.height//2+70,
+            text="Press Enter to play again",
+            font=("Arial", 20),
+            fill="white"
+        )
+
+        self.root.bind("<Return>", lambda e: self.start_game())
+      
