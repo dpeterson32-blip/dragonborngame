@@ -1,0 +1,189 @@
+import tkinter as tk
+import random
+
+# -----------------------
+# Setup
+# -----------------------
+
+root = tk.Tk()
+
+screen_w = root.winfo_screenwidth()
+screen_h = root.winfo_screenheight()
+
+root.geometry(f"{screen_w}x{screen_h}")
+root.attributes("-fullscreen", True)
+
+root.title("Card Battle")
+
+# -----------------------
+# Deck
+# -----------------------
+
+suits = ["♠", "♥", "♦", "♣"]
+ranks = ["2", "3", "4", "5", "6", "7",
+         "8", "9", "10", "J", "Q", "K", "A"]
+
+values = {
+    "2": 2, "3": 3, "4": 4,
+    "5": 5, "6": 6, "7": 7,
+    "8": 8, "9": 9, "10": 10,
+    "J": 11, "Q": 12,
+    "K": 13, "A": 14
+}
+
+# -----------------------
+# Game Data
+# -----------------------
+
+player_score = 0
+bot_score = 0
+round_num = 1
+
+# -----------------------
+# UI
+# -----------------------
+
+canvas = tk.Canvas(
+    root,
+    bg="darkgreen",
+    highlightthickness=0
+)
+
+canvas.pack(fill="both", expand=True)
+
+title = canvas.create_text(
+    screen_w//2,
+    60,
+    text="CARD BATTLE",
+    fill="white",
+    font=("Arial", 32, "bold")
+)
+
+player_score_text = canvas.create_text(
+    200,
+    50,
+    text="Player: 0",
+    fill="gold",
+    font=("Arial", 20, "bold")
+)
+
+bot_score_text = canvas.create_text(
+    screen_w-200,
+    50,
+    text="Bot: 0",
+    fill="red",
+    font=("Arial", 20, "bold")
+)
+
+info_text = canvas.create_text(
+    screen_w//2,
+    120,
+    text="Press DEAL",
+    fill="white",
+    font=("Arial", 18)
+)
+
+player_card_text = canvas.create_text(
+    screen_w//2 - 250,
+    screen_h//2,
+    text="?",
+    fill="white",
+    font=("Arial", 80, "bold")
+)
+
+bot_card_text = canvas.create_text(
+    screen_w//2 + 250,
+    screen_h//2,
+    text="?",
+    fill="white",
+    font=("Arial", 80, "bold")
+)
+
+# -----------------------
+# Deal Function
+# -----------------------
+
+def deal():
+
+    global player_score
+    global bot_score
+    global round_num
+
+    player_rank = random.choice(ranks)
+    bot_rank = random.choice(ranks)
+
+    player_suit = random.choice(suits)
+    bot_suit = random.choice(suits)
+
+    player_card = f"{player_rank}{player_suit}"
+    bot_card = f"{bot_rank}{bot_suit}"
+
+    canvas.itemconfig(
+        player_card_text,
+        text=player_card
+    )
+
+    canvas.itemconfig(
+        bot_card_text,
+        text=bot_card
+    )
+
+    player_value = values[player_rank]
+    bot_value = values[bot_rank]
+
+    if player_value > bot_value:
+        player_score += 1
+        result = "YOU WIN THIS ROUND!"
+
+    elif bot_value > player_value:
+        bot_score += 1
+        result = "BOT WINS THIS ROUND!"
+
+    else:
+        result = "DRAW!"
+
+    canvas.itemconfig(
+        player_score_text,
+        text=f"Player: {player_score}"
+    )
+
+    canvas.itemconfig(
+        bot_score_text,
+        text=f"Bot: {bot_score}"
+    )
+
+    canvas.itemconfig(
+        info_text,
+        text=f"Round {round_num} - {result}"
+    )
+
+    round_num += 1
+
+# -----------------------
+# Buttons
+# -----------------------
+
+deal_button = tk.Button(
+    root,
+    text="DEAL CARD",
+    font=("Arial", 20, "bold"),
+    bg="gold",
+    command=deal
+)
+
+deal_button.place(
+    relx=0.5,
+    rely=0.85,
+    anchor="center"
+)
+
+def quit_game(event=None):
+    root.destroy()
+
+root.bind("<Escape>", quit_game)
+
+# -----------------------
+# Main Game Loop
+# -----------------------
+
+root.mainloop()
